@@ -158,10 +158,6 @@ public class TransactionService implements ITransactionService {
                         .build()
         )).orElseThrow(() -> new DataNotFoundException("Terjadi kesalahan"));
 
-        if (myAccount.getBalance() < dto.amount()) {
-            throw new InsufficientBalanceException("Balance tidak mencukupi");
-        }
-
         myAccount.setBalance(myAccount.getBalance() + dto.amount());
         this.accountRepository.save(myAccount);
 
