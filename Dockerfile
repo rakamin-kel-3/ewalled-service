@@ -11,6 +11,6 @@ RUN mvn clean package -DskipTests
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 # Copy the built JAR from the previous stage
-COPY --from=build /app/target/ewalled.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
