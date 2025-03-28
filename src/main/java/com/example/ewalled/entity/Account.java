@@ -21,7 +21,8 @@ public class Account {
 
     private String name;
 
-    private String account_no;
+    @Column(name = "account_no")
+    private String accountNo;
 
     private Integer balance;
 

@@ -11,10 +11,6 @@ import java.time.LocalDateTime;
 public class UserDto {
 
     public record Create(
-            @NotNull(message = "Username tidak boleh kosong")
-            @NotBlank(message = "Username tidak boleh kosong")
-            String username,
-
             @NotNull(message = "Nama tidak boleh kosong")
             @NotBlank(message = "Nama tidak boleh kosong")
             String name,
@@ -34,7 +30,6 @@ public class UserDto {
         public User toUser() {
             return User
                     .builder()
-                    .username(this.username)
                     .name(this.name)
                     .email(this.email)
                     .phoneNumber(this.phoneNumber)

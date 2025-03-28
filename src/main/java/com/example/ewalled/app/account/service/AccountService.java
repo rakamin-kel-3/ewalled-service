@@ -34,7 +34,7 @@ public class AccountService implements IAccountService{
         var accInput = dto.toAccount();
         Account probe = Account
                 .builder()
-                .id(accInput.getId())
+                .userId(accInput.getUserId())
                 .build();
         var isExist = this.accountRepository.findOne(Example.of(probe));
 
@@ -45,7 +45,7 @@ public class AccountService implements IAccountService{
         boolean isSuccess = false;
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
             String candidate = this.generateAccountNo();
-            accInput.setAccount_no(candidate);
+            accInput.setAccountNo(candidate);
             try {
                 this.accountRepository.save(accInput);
                 isSuccess = true;
@@ -89,16 +89,20 @@ public class AccountService implements IAccountService{
     }
 
     @Override
-    public ServiceData<List<Account>> getList() {
+    public ServiceData<List<AccountDto.AccountTransferResponse>> getListForTransfer() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
 
         var accounts = this.accountRepository.findAll((root, query, cb) ->
                 cb.notEqual(root.get("userId"), user.getId()));
 
+        List<AccountDto.AccountTransferResponse> response = accounts.stream()
+                .map(account -> new AccountDto.AccountTransferResponse(account.getName(), account.getAccountNo()))
+                .toList();
+
         return ServiceData
-                .<List<Account>>builder()
-                .data(accounts)
+                .<List<AccountDto.AccountTransferResponse>>builder()
+                .data(response)
                 .build();
     }
 }

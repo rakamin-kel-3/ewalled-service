@@ -31,16 +31,13 @@ public class UserService implements IUserService {
 
     @Override
     public ServiceData<User> create(UserDto.Create dto) {
-        var isExist = this.userRepository.findByEmailOrUsername(dto.email(), dto.username());
+        var isExist = this.userRepository.findOne(Example.of(User
+                .builder()
+                .email(dto.email())
+                .build()));
 
         if (isExist.isPresent()) {
-            var userExist = isExist.get();
-            if (userExist.getUsername().equals(dto.username())) {
-                throw new DataAlreadyExistException("Username sudah terfadtar");
-            }
-            if (userExist.getEmail().equals(dto.email())) {
-                throw new DataAlreadyExistException("Email sudah terfadtar");
-            }
+            throw new DataAlreadyExistException("Email sudah terfadtar");
         }
 
         var newUser = dto.toUser();
@@ -68,7 +65,7 @@ public class UserService implements IUserService {
             throw new ForbiddenException("credential is not valid");
         }
 
-        var jwtToken = jwtUtil.generateJwtToken(user.getId(), user.getUsername());
+        var jwtToken = jwtUtil.generateJwtToken(user.getId(), user.getEmail());
         log.info(jwtToken);
         return ServiceData
                 .<String>builder()

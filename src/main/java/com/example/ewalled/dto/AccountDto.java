@@ -13,8 +13,8 @@ public class AccountDto {
             @NotBlank(message = "User Id tidak boleh kosong")
             int userId,
 
-            @NotNull(message = "User Id tidak boleh kosong")
-            @NotBlank(message = "User Id tidak boleh kosong")
+            @NotNull(message = "Name tidak boleh kosong")
+            @NotBlank(message = "Name tidak boleh kosong")
             String name
     ) {
         public Account toAccount() {
@@ -22,10 +22,13 @@ public class AccountDto {
                     .builder()
                     .userId(this.userId)
                     .name(this.name)
+                    .balance(0)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
         }
     }
+
+    public record AccountTransferResponse(String name, String accountNo) {}
 
 }

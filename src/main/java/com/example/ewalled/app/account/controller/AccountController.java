@@ -38,7 +38,7 @@ public class AccountController {
     )
     public ResponseEntity<HttpResponse> getList(
     ){
-        var data = this.accountService.getList().getData();
+        var data = this.accountService.getListForTransfer().getData();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         HttpResponse

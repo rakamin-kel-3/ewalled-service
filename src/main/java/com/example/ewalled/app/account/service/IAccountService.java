@@ -10,5 +10,5 @@ public interface IAccountService {
     ServiceData<Account> save(AccountDto.Create dto);
     ServiceData<Account> get();
 
-    ServiceData<List<Account>> getList();
+    ServiceData<List<AccountDto.AccountTransferResponse>> getListForTransfer();
 }

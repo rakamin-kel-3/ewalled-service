@@ -111,7 +111,7 @@ public class TransactionService implements ITransactionService {
         var receipentAccount = this.accountRepository.findOne(Example.of(
                 Account
                         .builder()
-                        .account_no(dto.receipentAccountNo())
+                        .accountNo(dto.receipentAccountNo())
                         .build()
         )).orElseThrow(() -> new DataNotFoundException("Account tujuan tidak ditemukan"));
 
@@ -137,7 +137,7 @@ public class TransactionService implements ITransactionService {
         return ServiceData
                 .<TransactionDto.Response>builder()
                 .data(
-                        new TransactionDto.Response(trx.getTransactionId(), trx.getCreatedAt(), trx.getTypeTrx(), "", trx.getDescription(), trx.getAmount(), "out", receipentAccount.getAccount_no(), myAccount.getAccount_no())
+                        new TransactionDto.Response(trx.getTransactionId(), trx.getCreatedAt(), trx.getTypeTrx(), "", trx.getDescription(), trx.getAmount(), "out", receipentAccount.getAccountNo(), myAccount.getAccountNo())
                 ).build();
     }
 
@@ -172,7 +172,7 @@ public class TransactionService implements ITransactionService {
                 .status("settled")
                 .typeTrx("topup")
                 .receipentAccountId(myAccount.getId())
-                .description((dto.notes().isEmpty() ? "Top Up from " + dto.paymentMethod() : dto.notes()))
+                .description((dto.notes() == null ? "Top Up from " + dto.paymentMethod() : dto.notes()))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build());
