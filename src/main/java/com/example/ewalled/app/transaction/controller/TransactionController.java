@@ -7,6 +7,7 @@ import com.example.ewalled.entity.HttpResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +22,14 @@ public class TransactionController {
     @GetMapping(
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<HttpResponse> get(
-    ){
-        var data = this.transactionService.get().getData();
+    public ResponseEntity<HttpResponse> getList(Pageable pageable){
+        var data = this.transactionService.getList(pageable);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         HttpResponse
                                 .sendSuccessResponse(
-                                        data,
+                                        data.getData(),
+                                        data.getPagination(),
                                         "Berhasil mendapatkan data transactions"
                                 )
                 );
@@ -48,6 +49,7 @@ public class TransactionController {
                         HttpResponse
                                 .sendSuccessResponse(
                                         data,
+                                        null,
                                         "Berhasil melakukan transfer"
                                 )
                 );
@@ -67,6 +69,7 @@ public class TransactionController {
                         HttpResponse
                                 .sendSuccessResponse(
                                         data,
+                                        null,
                                         "Berhasil melakukan topup"
                                 )
                 );

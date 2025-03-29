@@ -48,6 +48,7 @@ public class UserController {
                         HttpResponse
                                 .sendSuccessResponse(
                                         userMapper.toResponse(data),
+                                        null,
                                         "Berhasil register user"
                                 )
                 );
@@ -67,6 +68,7 @@ public class UserController {
                         HttpResponse
                                 .sendSuccessResponse(
                                         data,
+                                        null,
                                         "Berhasil login"
                                 )
                 );
@@ -84,6 +86,7 @@ public class UserController {
                         HttpResponse
                                 .sendSuccessResponse(
                                         userMapper.toResponse(data),
+                                        null,
                                         "Berhasil mendapatkan data profile"
                                 )
                 );
