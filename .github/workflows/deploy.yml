@@ -1,0 +1,27 @@
+name: Deploy Fulusku Service
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Deploy via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fulusku-service:latest
+            docker stop fulusku_service || true && docker rm fulusku_service || true
+            docker run -d \
+              --name fulusku_service \
+              --env-file /home/${{ secrets.VPS_USER }}/fulusku/.env \
+              -p 8080:8080 \
+              ${{ secrets.DOCKERHUB_USERNAME }}/fulusku-service:latest
+          EOF
