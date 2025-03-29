@@ -63,7 +63,7 @@ public class UserController {
             @RequestBody @Valid UserDto.Login dto
     ){
         var data = this.userService.login(dto).getData();
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(
                         HttpResponse
                                 .sendSuccessResponse(
