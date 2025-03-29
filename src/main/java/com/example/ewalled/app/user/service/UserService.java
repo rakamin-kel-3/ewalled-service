@@ -66,7 +66,6 @@ public class UserService implements IUserService {
         }
 
         var jwtToken = jwtUtil.generateJwtToken(user.getId(), user.getEmail());
-        log.info(jwtToken);
         return ServiceData
                 .<String>builder()
                 .data(jwtToken)
