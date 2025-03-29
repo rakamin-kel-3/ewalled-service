@@ -3,15 +3,14 @@ package com.example.ewalled.app.transaction.service;
 import com.example.ewalled.app.account.repository.AccountRepository;
 import com.example.ewalled.app.transaction.repository.TransactionRepository;
 import com.example.ewalled.dto.TransactionDto;
-import com.example.ewalled.entity.Account;
-import com.example.ewalled.entity.ServiceData;
-import com.example.ewalled.entity.Transaction;
-import com.example.ewalled.entity.User;
+import com.example.ewalled.entity.*;
 import com.example.ewalled.exception.DataNotFoundException;
 import com.example.ewalled.exception.InsufficientBalanceException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,7 +28,7 @@ public class TransactionService implements ITransactionService {
     private AccountRepository accountRepository;
 
     @Override
-    public ServiceData<List<TransactionDto.Response>> get() {
+    public ServiceData<List<TransactionDto.Response>> getList(Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
 
@@ -40,11 +39,14 @@ public class TransactionService implements ITransactionService {
                         .build()
         )).orElseThrow(() -> new DataNotFoundException("account tidak ditemukan"));
 
-        var transactions = this.transactionRepository.findBySenderAccountIdOrReceipentAccountIdOrderByCreatedAtDesc(account.getId(), account.getId())
-                .orElseThrow(() -> new DataNotFoundException("Transaction tidak ditemukan"));
+        var transactions = this.transactionRepository.findBySenderAccountIdOrReceipentAccountId(account.getId(), account.getId(), pageable);
+
+        if (transactions.getContent().isEmpty()) {
+            throw new DataNotFoundException("transaction not found");
+        }
 
         Map<Integer, String> accountNameMap = new HashMap<>();
-        for (Transaction t : transactions) {
+        for (Transaction t : transactions.getContent()) {
             if (!accountNameMap.containsKey(t.getReceipentAccountId()) && t.getReceipentAccountId() != account.getId()) {
                 accountNameMap.put(t.getReceipentAccountId(), "");
                 continue;
@@ -62,7 +64,7 @@ public class TransactionService implements ITransactionService {
 
         List<TransactionDto.Response> response = new ArrayList<>();
 
-        for (Transaction t : transactions) {
+        for (Transaction t : transactions.getContent()) {
             String fromto = "";
             String inout = "in";
             if (t.getTypeTrx().equals("transfer")) {
@@ -89,6 +91,14 @@ public class TransactionService implements ITransactionService {
         return ServiceData
                 .<List<TransactionDto.Response>>builder()
                 .data(response)
+                .pagination(HttpResponse.Pagination.builder()
+                        .totalItems(transactions.getTotalElements())
+                        .currentPage(transactions.getNumber())
+                        .totalPages(transactions.getTotalPages())
+                        .pageSize(transactions.getTotalPages())
+                        .hasNext(transactions.hasNext())
+                        .hasPrevious(transactions.hasPrevious())
+                        .build())
                 .build();
     }
 

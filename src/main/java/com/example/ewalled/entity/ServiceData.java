@@ -10,5 +10,6 @@ import lombok.*;
 @ToString
 public class ServiceData<T> {
     private T data;
+    private HttpResponse.Pagination pagination;
     private Object metadata;
 }
