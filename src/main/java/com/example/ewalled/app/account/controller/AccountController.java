@@ -22,7 +22,7 @@ public class AccountController {
     public ResponseEntity<HttpResponse> get(
     ){
         var data = this.accountService.get().getData();
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(
                         HttpResponse
                                 .sendSuccessResponse(
@@ -37,10 +37,10 @@ public class AccountController {
             value = "/list",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<HttpResponse> getList(
+    public ResponseEntity<HttpResponse> getListForTransfer(
     ){
         var data = this.accountService.getListForTransfer().getData();
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(
                         HttpResponse
                                 .sendSuccessResponse(

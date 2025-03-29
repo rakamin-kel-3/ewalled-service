@@ -24,7 +24,7 @@ public class TransactionController {
     )
     public ResponseEntity<HttpResponse> getList(Pageable pageable){
         var data = this.transactionService.getList(pageable);
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(
                         HttpResponse
                                 .sendSuccessResponse(
@@ -44,7 +44,7 @@ public class TransactionController {
             @RequestBody @Valid TransactionDto.Transfer dto
     ){
         var data = this.transactionService.transfer(dto).getData();
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         HttpResponse
                                 .sendSuccessResponse(
@@ -64,7 +64,7 @@ public class TransactionController {
             @RequestBody @Valid TransactionDto.Topup dto
     ){
         var data = this.transactionService.topup(dto).getData();
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         HttpResponse
                                 .sendSuccessResponse(
