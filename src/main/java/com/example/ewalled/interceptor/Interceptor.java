@@ -43,7 +43,6 @@ public class Interceptor {
     })
     public ResponseEntity<HttpResponse> handleException(DataNotFoundException ex){
         log.error("Handle Exception error : {} | {}", ex.getMessage(), ex.getStackTrace()[0]);
-        ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(
