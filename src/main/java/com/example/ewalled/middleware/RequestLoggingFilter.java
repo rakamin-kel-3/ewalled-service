@@ -13,7 +13,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+
+import static net.logstash.logback.argument.StructuredArguments.entries;
 
 @Component
 @Slf4j
@@ -38,14 +42,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             long duration = System.currentTimeMillis() - start;
-            int status = response.getStatus();
 
-            log.info("HTTP {} {} → {} ({} ms)",
-                    request.getMethod(),
-                    request.getRequestURI(),
-                    status,
-                    duration
-            );
+            Map<String, Object> logMap = new HashMap<>();
+            logMap.put("method", request.getMethod());
+            logMap.put("endpoint", request.getRequestURI());
+            logMap.put("status", response.getStatus());
+            logMap.put("duration", duration);
+            logMap.put("traceId", traceId);
+            logMap.put("userId", userId);
+
+            log.info("Handled http request", entries(logMap));
 
             MDC.clear();
         }
