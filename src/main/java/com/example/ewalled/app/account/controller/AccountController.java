@@ -27,6 +27,7 @@ public class AccountController {
                         HttpResponse
                                 .sendSuccessResponse(
                                         data,
+                                        null,
                                         "Berhasil mendapatkan data account"
                                 )
                 );
@@ -44,6 +45,7 @@ public class AccountController {
                         HttpResponse
                                 .sendSuccessResponse(
                                         data,
+                                        null,
                                         "Berhasil mendapatkan data list account"
                                 )
                 );

@@ -14,8 +14,8 @@ import org.springframework.http.HttpStatusCode;
 public class HttpResponse {
 
     private Object data;
-
     private Meta metadata;
+    private Pagination pagination;
 
     @Builder
     @Setter
@@ -25,8 +25,21 @@ public class HttpResponse {
         private boolean isSuccess;
     }
 
+    @Builder
+    @Setter
+    @Getter
+    public static class Pagination {
+        private Long totalItems;
+        private int currentPage;
+        private int totalPages;
+        private int pageSize;
+        private boolean hasNext;
+        private boolean hasPrevious;
+    }
+
     public static HttpResponse sendSuccessResponse(
             Object data,
+            Pagination pagination,
             String message
     ) {
         return HttpResponse
@@ -39,6 +52,7 @@ public class HttpResponse {
                                 .build()
                 )
                 .data(data)
+                .pagination(pagination)
                 .build();
     }
 
