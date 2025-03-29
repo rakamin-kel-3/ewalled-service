@@ -22,6 +22,9 @@ jobs:
             docker stop fulusku-service || true && docker rm fulusku-service || true
             docker run -d \
               --name fulusku-service \
+              --log-driver=loki \
+              --log-opt loki-url="http://localhost:3100/loki/api/v1/push" \
+              --log-opt loki-external-labels=job=fulusku-service \
               --network fulusku_default \
               --env-file /home/${{ secrets.VPS_USER }}/fulusku/.env \
               -p 8080:8080 \
