@@ -2,6 +2,8 @@ package com.example.ewalled.jwt;
 
 import com.example.ewalled.app.user.repository.UserRepository;
 import com.example.ewalled.entity.User;
+import com.example.ewalled.exception.ForbiddenException;
+
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,8 +31,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
@@ -49,15 +51,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                 .id((Integer) claims.get("id"))
                                 .build()));
 
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(user.get(), null, Collections.emptyList());
+                        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user.get(),
+                                null, Collections.emptyList());
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }
 
                 } catch (Exception e) {
-                    // Log error and clear context, or optionally handle the error differently
-                    System.err.println("JWT parsing error: " + e.getMessage());
                     SecurityContextHolder.clearContext();
+                    // throw error when token expired
+                    throw new ForbiddenException(e.getMessage());
                 }
             }
         }
