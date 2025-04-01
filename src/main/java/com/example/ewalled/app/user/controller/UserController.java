@@ -34,7 +34,7 @@ public class UserController {
     private IAccountService accountService;
 
     @PostMapping(
-            value = "/public/register",
+            value = "/auth/register",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @PostMapping(
-            value = "/public/login",
+            value = "/auth/login",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )

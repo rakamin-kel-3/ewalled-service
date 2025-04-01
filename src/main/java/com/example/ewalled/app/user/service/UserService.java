@@ -1,10 +1,12 @@
 package com.example.ewalled.app.user.service;
 
 import com.example.ewalled.app.account.service.AccountService;
+import com.example.ewalled.app.refresh_token.repository.RefreshTokenRepistory;
 import com.example.ewalled.app.user.repository.UserRepository;
 import com.example.ewalled.dto.AccountDto;
 import com.example.ewalled.dto.UserDto;
 import com.example.ewalled.entity.Account;
+import com.example.ewalled.entity.RefreshToken;
 import com.example.ewalled.exception.DataAlreadyExistException;
 import com.example.ewalled.entity.ServiceData;
 import com.example.ewalled.entity.User;
@@ -20,12 +22,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
+
 @Service
 @Transactional
 @Slf4j
 public class UserService implements IUserService {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RefreshTokenRepistory refreshTokenRepistory;
+
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -50,7 +60,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ServiceData<String> login(UserDto.Login dto) {
+    public ServiceData<UserDto.LoginResponse> login(UserDto.Login dto) {
         var inputUser = dto.toUser();
 
         User probe = User
@@ -65,10 +75,23 @@ public class UserService implements IUserService {
             throw new ForbiddenException("credential is not valid");
         }
 
+        var refreshToken = this.refreshTokenRepistory.findOne(Example.of(
+                RefreshToken
+                        .builder()
+                        .userId(user.getId())
+                        .build()
+        )).orElseGet(() -> this.refreshTokenRepistory.save(RefreshToken
+                .builder()
+                .token(UUID.randomUUID().toString())
+                .userId(user.getId())
+                .expiryDate(Instant.now().plus(60, ChronoUnit.DAYS))
+                .build()));
+
         var jwtToken = jwtUtil.generateJwtToken(user.getId(), user.getEmail());
+
         return ServiceData
-                .<String>builder()
-                .data(jwtToken)
+                .<UserDto.LoginResponse>builder()
+                .data(new UserDto.LoginResponse(jwtToken, refreshToken.getToken()))
                 .build();
     }
 
