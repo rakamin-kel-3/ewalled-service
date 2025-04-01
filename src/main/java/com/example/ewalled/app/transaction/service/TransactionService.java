@@ -140,6 +140,7 @@ public class TransactionService implements ITransactionService {
                         .status("settled")
                         .typeTrx("transfer")
                         .description(dto.notes())
+                        .category(dto.category())
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build());
@@ -177,6 +178,7 @@ public class TransactionService implements ITransactionService {
                 .amount(dto.amount())
                 .status("settled")
                 .typeTrx("topup")
+                .category(dto.category())
                 .receipentAccountId(myAccount.getId())
                 .description((dto.notes() == null ? "Top Up from " + dto.paymentMethod() : dto.notes()))
                 .createdAt(LocalDateTime.now())

@@ -15,6 +15,10 @@ public class TransactionDto {
             @NotNull(message = "Amount tidak boleh kosong")
             int amount,
 
+            @NotNull(message = "Category tidak boleh kosong")
+            @NotBlank(message = "Category tidak boleh kosong")
+            String category,
+
             String notes
     ) {
 
@@ -27,6 +31,10 @@ public class TransactionDto {
             @NotNull(message = "Payment Method tidak boleh kosong")
             @NotBlank(message = "Payment Method tidak boleh kosong")
             String paymentMethod,
+
+            @NotNull(message = "Category tidak boleh kosong")
+            @NotBlank(message = "Category tidak boleh kosong")
+            String category,
 
             String notes
     ) {}
