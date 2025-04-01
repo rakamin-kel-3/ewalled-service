@@ -6,6 +6,6 @@ import com.example.ewalled.entity.User;
 
 public interface IUserService {
     ServiceData<User> create(UserDto.Create dto);
-    ServiceData<String> login(UserDto.Login dto);
+    ServiceData<UserDto.LoginResponse> login(UserDto.Login dto);
     ServiceData<User> me();
 }

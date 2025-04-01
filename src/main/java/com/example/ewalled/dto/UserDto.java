@@ -59,4 +59,6 @@ public class UserDto {
     }
 
     public record Response(Integer id, String username, String email, String name, String phoneNumber, String avatar) {}
+
+    public record LoginResponse(String token, String refreshToken) {}
 }
