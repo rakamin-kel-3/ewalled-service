@@ -31,6 +31,8 @@ public class Transaction {
     @Column(name = "type_trx")
     private String typeTrx;
 
+    private String category;
+
     @Column(name = "sender_account_id")
     private Integer senderAccountId;
 
