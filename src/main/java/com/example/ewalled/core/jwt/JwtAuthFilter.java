@@ -1,4 +1,4 @@
-package com.example.ewalled.jwt;
+package com.example.ewalled.core.jwt;
 
 import com.example.ewalled.app.user.repository.UserRepository;
 import com.example.ewalled.entity.User;
@@ -14,7 +14,6 @@ import org.springframework.data.domain.Example;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;

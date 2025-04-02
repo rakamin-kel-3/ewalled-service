@@ -1,6 +1,6 @@
 package com.example.ewalled.configuration;
 
-import com.example.ewalled.jwt.JwtAuthFilter;
+import com.example.ewalled.core.jwt.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
