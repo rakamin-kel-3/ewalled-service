@@ -25,12 +25,9 @@ public class TransactionDto {
 
                         @NotNull(message = "Payment Method tidak boleh kosong") @NotBlank(message = "Payment Method tidak boleh kosong") String paymentMethod,
 
-                        @NotNull(message = "Category tidak boleh kosong") @NotBlank(message = "Category tidak boleh kosong") String category,
-
                         String notes) {
         }
 
-        public record Response(String transactionId, LocalDateTime createdAt, String type, String fromto,
-                        String description, int amount, String inout, String accountTo, String accountFrom) {
+        public record Response(String transactionId, LocalDateTime createdAt, String type, String fromto, String description, int amount, String inout, String accountTo, String accountFrom, String category) {
         }
 }
