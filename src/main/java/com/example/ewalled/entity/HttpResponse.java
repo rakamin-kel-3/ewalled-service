@@ -1,9 +1,6 @@
 package com.example.ewalled.entity;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 
@@ -28,6 +25,8 @@ public class HttpResponse {
     @Builder
     @Setter
     @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Pagination {
         private Long totalItems;
         private int currentPage;
