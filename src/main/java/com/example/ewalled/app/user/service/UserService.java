@@ -1,18 +1,15 @@
 package com.example.ewalled.app.user.service;
 
-import com.example.ewalled.app.account.service.AccountService;
 import com.example.ewalled.app.refresh_token.repository.RefreshTokenRepistory;
 import com.example.ewalled.app.user.repository.UserRepository;
-import com.example.ewalled.dto.AccountDto;
 import com.example.ewalled.dto.UserDto;
-import com.example.ewalled.entity.Account;
 import com.example.ewalled.entity.RefreshToken;
 import com.example.ewalled.exception.DataAlreadyExistException;
 import com.example.ewalled.entity.ServiceData;
 import com.example.ewalled.entity.User;
 import com.example.ewalled.exception.DataNotFoundException;
 import com.example.ewalled.exception.ForbiddenException;
-import com.example.ewalled.jwt.JwtUtil;
+import com.example.ewalled.core.jwt.JwtUtil;
 import com.example.ewalled.util.BcryptUtil;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

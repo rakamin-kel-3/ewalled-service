@@ -6,7 +6,7 @@ import com.example.ewalled.entity.RefreshToken;
 import com.example.ewalled.entity.ServiceData;
 import com.example.ewalled.entity.User;
 import com.example.ewalled.exception.DataNotFoundException;
-import com.example.ewalled.jwt.JwtUtil;
+import com.example.ewalled.core.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.security.core.Authentication;

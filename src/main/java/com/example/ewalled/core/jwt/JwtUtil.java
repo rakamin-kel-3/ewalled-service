@@ -1,4 +1,4 @@
-package com.example.ewalled.jwt;
+package com.example.ewalled.core.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
