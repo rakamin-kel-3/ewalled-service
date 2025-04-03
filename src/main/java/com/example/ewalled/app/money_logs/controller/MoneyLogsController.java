@@ -31,7 +31,26 @@ public class MoneyLogsController {
                                 .sendSuccessResponse(
                                         data.getData(),
                                         null,
-                                        "Berhasil mendapatkan data transactions"
+                                        "Berhasil mendapatkan data money logs"
+                                )
+                );
+    }
+
+    @GetMapping(
+            value = "/graph",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<HttpResponse> getGraph(
+            @ModelAttribute @Valid MoneyLogsDto.GraphRequest dto
+    ){
+        var data = this.moneyLogsService.getGraph(dto);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(
+                        HttpResponse
+                                .sendSuccessResponse(
+                                        data.getData(),
+                                        null,
+                                        "Berhasil mendapatkan data graph"
                                 )
                 );
     }
