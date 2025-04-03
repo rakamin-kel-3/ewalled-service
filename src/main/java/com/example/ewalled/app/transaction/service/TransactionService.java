@@ -206,11 +206,16 @@ public class TransactionService implements ITransactionService {
 
         String key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, myAccount.getUserId());
         this.redisCacheService.delete(key);
-        log.info("[REDIS] invalidate key : {}", key);
+
+        key = String.format(RedisKeys.MONEYLOGS_GETLIST_PATTERN, myAccount.getUserId());
+        this.redisCacheService.delete(key);
+
 
         key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, receipentAccount.getUserId());
         this.redisCacheService.delete(key);
-        log.info("[REDIS] invalidate key : {}", key);
+
+        key = String.format(RedisKeys.MONEYLOGS_GETLIST_PATTERN, receipentAccount.getUserId());
+        this.redisCacheService.delete(key);
 
         return ServiceData
                 .<TransactionDto.Response>builder()
@@ -270,7 +275,9 @@ public class TransactionService implements ITransactionService {
 
         String key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, myAccount.getUserId());
         this.redisCacheService.delete(key);
-        log.info("[REDIS] invalidate key : {}", key);
+
+        key = String.format(RedisKeys.MONEYLOGS_GETLIST_PATTERN, myAccount.getUserId());
+        this.redisCacheService.delete(key);
 
         return ServiceData
                 .<TransactionDto.Response>builder()

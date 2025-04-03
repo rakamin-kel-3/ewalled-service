@@ -2,22 +2,30 @@ package com.example.ewalled.app.money_logs.service;
 
 import com.example.ewalled.app.money_logs.repository.MoneyLogsRepository;
 import com.example.ewalled.app.transaction.repository.TransactionRepository;
+import com.example.ewalled.core.redis.CacheKeyBuilder;
+import com.example.ewalled.core.redis.RedisCacheService;
+import com.example.ewalled.core.redis.RedisKeys;
 import com.example.ewalled.dto.MoneyLogsDto;
+import com.example.ewalled.dto.TransactionDto;
 import com.example.ewalled.entity.MoneyLogs;
 import com.example.ewalled.entity.ServiceData;
 import com.example.ewalled.entity.User;
 import com.example.ewalled.exception.BackdateException;
 import com.example.ewalled.exception.DataNotFoundException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 @Service
 public class MoneyLogsService implements IMoneyLogsService{
 
@@ -27,6 +35,9 @@ public class MoneyLogsService implements IMoneyLogsService{
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private RedisCacheService redisCacheService;
+
     @Override
     public ServiceData<MoneyLogsDto.GetListResponse> getList(MoneyLogsDto.Request dto) {
         if (dto.endDate().isBefore(dto.startDate())) {
@@ -35,6 +46,14 @@ public class MoneyLogsService implements IMoneyLogsService{
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
+
+        String key = String.format(RedisKeys.MONEYLOGS_GETLIST_KEY, "getList", user.getId(), CacheKeyBuilder.buildFrom(dto));
+        ServiceData<MoneyLogsDto.GetListResponse> cached = this.redisCacheService.get(key, new TypeReference<>() {
+        });
+        if (cached != null) {
+            log.info("Get from redis key : {}", key);
+            return cached;
+        }
 
         var moneyLogs = this.moneyLogsRepository.findByUserIdAndDateBetweenOrderByDateDesc(user.getId(), dto.startDate(), dto.endDate());
 
@@ -54,7 +73,7 @@ public class MoneyLogsService implements IMoneyLogsService{
             expense += m.getAmount();
         }
 
-        return ServiceData
+        var res = ServiceData
                 .<MoneyLogsDto.GetListResponse>builder()
                 .data(MoneyLogsDto.GetListResponse
                         .builder()
@@ -65,12 +84,25 @@ public class MoneyLogsService implements IMoneyLogsService{
                         .periodEnd(dto.endDate())
                         .build())
                 .build();
+
+        this.redisCacheService.setEX(key, res, Duration.ofMinutes(5));
+        log.info("Set new redis key : {}", key);
+
+        return res;
     }
 
     @Override
     public ServiceData<MoneyLogsDto.GetGraphResponse> getGraph(MoneyLogsDto.GraphRequest dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
+
+        String key = String.format(RedisKeys.MONEYLOGS_GETLIST_KEY, "getGraph", user.getId(), CacheKeyBuilder.buildFrom(dto));
+        ServiceData<MoneyLogsDto.GetGraphResponse> cached = this.redisCacheService.get(key, new TypeReference<>() {
+        });
+        if (cached != null) {
+            log.info("Get from redis key : {}", key);
+            return cached;
+        }
 
         var moneyLogs = this.moneyLogsRepository.findByUserIdAndTypeAndDateBetweenOrderByDateDesc(user.getId(), dto.type(), dto.startDate(), dto.endDate());
 
@@ -115,7 +147,7 @@ public class MoneyLogsService implements IMoneyLogsService{
                     .build());
         });
 
-        return ServiceData
+        var res = ServiceData
                 .<MoneyLogsDto.GetGraphResponse>builder()
                 .data(MoneyLogsDto.GetGraphResponse
                         .builder()
@@ -124,6 +156,11 @@ public class MoneyLogsService implements IMoneyLogsService{
                         .type(dto.type())
                         .build())
                 .build();
+
+        this.redisCacheService.setEX(key, res, Duration.ofMinutes(5));
+        log.info("Set new redis key : {}", key);
+
+        return res;
     }
 
     @Override
@@ -135,6 +172,9 @@ public class MoneyLogsService implements IMoneyLogsService{
         moneyLogs.setUserId(user.getId());
 
         this.moneyLogsRepository.save(moneyLogs);
+
+        String key = String.format(RedisKeys.MONEYLOGS_GETLIST_PATTERN, user.getId());
+        this.redisCacheService.delete(key);
 
         return ServiceData
                 .<MoneyLogs>builder()
