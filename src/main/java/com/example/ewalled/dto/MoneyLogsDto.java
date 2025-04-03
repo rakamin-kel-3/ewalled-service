@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class MoneyLogsDto {
@@ -38,6 +39,39 @@ public class MoneyLogsDto {
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
             LocalDate endDate
     ) {}
+
+    public record NewLogsRequest(
+            @NotNull(message = "Amount tidak boleh kosong")
+            Integer amount,
+
+            @NotNull(message = "Category tidak boleh kosong")
+            @NotBlank(message = "Category tidak boleh kosong")
+            String category,
+
+            @NotNull(message = "Type tidak boleh kosong")
+            @NotBlank(message = "Type tidak boleh kosong")
+            @ValidEnum(enumClass = GraphType.class, message = "Type harus income atau expense")
+            String type,
+
+            @NotNull(message = "Date tidak boleh kosong")
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+            LocalDate date,
+
+            String notes
+    ) {
+        public MoneyLogs toEntity() {
+            return MoneyLogs
+                    .builder()
+                    .category(this.category)
+                    .amount(this.amount)
+                    .type(this.type)
+                    .date(this.date)
+                    .notes(this.notes)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+        }
+    }
 
     @Builder
     public record GetListResponse(Integer income, Integer expense, LocalDate periodStart, LocalDate periodEnd, List<MoneyLogs> data) {}

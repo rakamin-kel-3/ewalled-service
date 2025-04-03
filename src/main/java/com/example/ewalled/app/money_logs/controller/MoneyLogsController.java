@@ -54,4 +54,24 @@ public class MoneyLogsController {
                                 )
                 );
     }
+
+    @PostMapping(
+            value = "/create",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<HttpResponse> save(
+            @RequestBody @Valid MoneyLogsDto.NewLogsRequest dto
+    ){
+        var data = this.moneyLogsService.save(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(
+                        HttpResponse
+                                .sendSuccessResponse(
+                                        data.getData(),
+                                        null,
+                                        "Berhasil membuat data money logs baru"
+                                )
+                );
+    }
 }

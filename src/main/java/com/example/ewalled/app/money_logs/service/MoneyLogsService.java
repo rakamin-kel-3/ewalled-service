@@ -125,4 +125,20 @@ public class MoneyLogsService implements IMoneyLogsService{
                         .build())
                 .build();
     }
+
+    @Override
+    public ServiceData<MoneyLogs> save(MoneyLogsDto.NewLogsRequest dto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
+        var moneyLogs = dto.toEntity();
+        moneyLogs.setUserId(user.getId());
+
+        this.moneyLogsRepository.save(moneyLogs);
+
+        return ServiceData
+                .<MoneyLogs>builder()
+                .data(moneyLogs)
+                .build();
+    }
 }
