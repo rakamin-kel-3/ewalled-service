@@ -1,15 +1,17 @@
 package com.example.ewalled.interceptor;
 
 import com.example.ewalled.entity.HttpResponse;
-import com.example.ewalled.exception.DataAlreadyExistException;
-import com.example.ewalled.exception.DataNotFoundException;
-import com.example.ewalled.exception.ForbiddenException;
-import com.example.ewalled.exception.InsufficientBalanceException;
+import com.example.ewalled.exception.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 @Slf4j
 @RestControllerAdvice
@@ -67,6 +69,35 @@ public class Interceptor {
     })
     public ResponseEntity<HttpResponse> handleException(InsufficientBalanceException ex){
         log.error("Handle Exception error : {} | {}", ex.getMessage(), ex.getStackTrace()[0]);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        HttpResponse.sendErrorResponse(ex.getMessage())
+                );
+    }
+
+    @ExceptionHandler({
+            MethodArgumentNotValidException.class
+    })
+    public ResponseEntity<HttpResponse> handleException(MethodArgumentNotValidException ex){
+        log.error("Handle Exception error : {} | {}", ex.getMessage(), ex.getStackTrace()[0]);
+        List<String> messages = ex.getBindingResult().getFieldErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .toList();
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        HttpResponse.sendErrorResponse(messages.toString())
+                );
+    }
+
+    @ExceptionHandler({
+            BackdateException.class
+    })
+    public ResponseEntity<HttpResponse> handleException(BackdateException ex){
+        log.error("Handle Exception error : {} | {}", ex.getMessage(), ex.getStackTrace()[0]);
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(

@@ -1,6 +1,7 @@
 package com.example.ewalled.app.transaction.service;
 
 import com.example.ewalled.app.account.repository.AccountRepository;
+import com.example.ewalled.app.money_logs.repository.MoneyLogsRepository;
 import com.example.ewalled.app.transaction.repository.TransactionRepository;
 import com.example.ewalled.core.redis.CacheKeyBuilder;
 import com.example.ewalled.core.redis.RedisCacheService;
@@ -10,6 +11,7 @@ import com.example.ewalled.entity.*;
 import com.example.ewalled.exception.DataNotFoundException;
 import com.example.ewalled.exception.InsufficientBalanceException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -20,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -31,6 +34,9 @@ public class TransactionService implements ITransactionService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private MoneyLogsRepository moneyLogsRepository;
 
     @Autowired
     private RedisCacheService redisCacheService;
@@ -125,6 +131,7 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional
     public ServiceData<TransactionDto.Response> transfer(TransactionDto.Transfer dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
@@ -167,6 +174,36 @@ public class TransactionService implements ITransactionService {
                         .updatedAt(LocalDateTime.now())
                         .build());
 
+        this.moneyLogsRepository.save(MoneyLogs
+                .builder()
+                .date(LocalDate.now())
+                .isTransaction(true)
+                .transactionId(trx.getId())
+                .amount(dto.amount())
+                .category(dto.category())
+                .notes(dto.notes())
+                .userId(user.getId())
+                .type("expense")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()
+        );
+
+        this.moneyLogsRepository.save(MoneyLogs
+                .builder()
+                .date(LocalDate.now())
+                .isTransaction(true)
+                .transactionId(trx.getId())
+                .amount(dto.amount())
+                .category("transfer")
+                .notes(dto.notes())
+                .userId(receipentAccount.getUserId())
+                .type("income")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()
+        );
+
         String key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, myAccount.getUserId());
         this.redisCacheService.delete(key);
         log.info("[REDIS] invalidate key : {}", key);
@@ -188,6 +225,7 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional
     public ServiceData<TransactionDto.Response> topup(TransactionDto.Topup dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
@@ -214,6 +252,21 @@ public class TransactionService implements ITransactionService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build());
+
+        this.moneyLogsRepository.save(MoneyLogs
+                .builder()
+                .date(LocalDate.now())
+                .isTransaction(true)
+                .transactionId(trx.getId())
+                .amount(dto.amount())
+                .category(dto.paymentMethod())
+                .notes(dto.notes())
+                .userId(user.getId())
+                .type("income")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()
+        );
 
         String key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, myAccount.getUserId());
         this.redisCacheService.delete(key);
