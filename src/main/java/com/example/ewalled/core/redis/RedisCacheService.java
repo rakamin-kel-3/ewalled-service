@@ -4,15 +4,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class RedisCacheService {
 
@@ -38,8 +39,14 @@ public class RedisCacheService {
     }
 
     public void delete(String pattern) {
-        Set<String> keys = redisTemplate.keys(pattern);
-        redisTemplate.delete(keys);
+        ScanOptions options = ScanOptions.scanOptions().match(pattern).build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                var key = cursor.next();
+                redisTemplate.delete(key);
+                log.info("REDIS: invalidate key : {}", key);
+            }
+        }
     }
 }
 
