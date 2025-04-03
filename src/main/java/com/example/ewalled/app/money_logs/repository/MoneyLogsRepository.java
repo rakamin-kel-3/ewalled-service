@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface MoneyLogsRepository extends JpaRepository<MoneyLogs, Integer> {
     List<MoneyLogs> findByUserIdAndDateBetweenOrderByDateDesc(Integer userId, LocalDate start, LocalDate end);
+    List<MoneyLogs> findByUserIdAndTypeAndDateBetweenOrderByDateDesc(Integer userId, String type, LocalDate start, LocalDate end);
 }

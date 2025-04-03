@@ -1,5 +1,7 @@
 package com.example.ewalled.dto;
 
+import com.example.ewalled.annotation.ValidEnum;
+import com.example.ewalled.domain.enums.GraphType;
 import com.example.ewalled.entity.MoneyLogs;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +23,28 @@ public class MoneyLogsDto {
             @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
             LocalDate endDate
     ) {}
+
+    public record GraphRequest(
+            @NotNull(message = "Type tidak boleh kosong")
+            @NotBlank(message = "Type tidak boleh kosong")
+            @ValidEnum(enumClass = GraphType.class, message = "Type harus income atau expense")
+            String type,
+
+            @NotNull(message = "Start Date tidak boleh kosong")
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+            LocalDate startDate,
+
+            @NotNull(message = "End Date tidak boleh kosong")
+            @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+            LocalDate endDate
+    ) {}
+
     @Builder
     public record GetListResponse(Integer income, Integer expense, LocalDate periodStart, LocalDate periodEnd, List<MoneyLogs> data) {}
+
+    @Builder
+    public record GraphItem(double percentage, String category, Integer amount) {}
+
+    @Builder
+    public record GetGraphResponse(String type, Integer totalAmount, List<GraphItem> items) {}
 }
