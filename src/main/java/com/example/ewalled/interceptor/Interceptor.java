@@ -1,10 +1,7 @@
 package com.example.ewalled.interceptor;
 
 import com.example.ewalled.entity.HttpResponse;
-import com.example.ewalled.exception.DataAlreadyExistException;
-import com.example.ewalled.exception.DataNotFoundException;
-import com.example.ewalled.exception.ForbiddenException;
-import com.example.ewalled.exception.InsufficientBalanceException;
+import com.example.ewalled.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -92,6 +89,19 @@ public class Interceptor {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(
                         HttpResponse.sendErrorResponse(messages.toString())
+                );
+    }
+
+    @ExceptionHandler({
+            BackdateException.class
+    })
+    public ResponseEntity<HttpResponse> handleException(BackdateException ex){
+        log.error("Handle Exception error : {} | {}", ex.getMessage(), ex.getStackTrace()[0]);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        HttpResponse.sendErrorResponse(ex.getMessage())
                 );
     }
 }

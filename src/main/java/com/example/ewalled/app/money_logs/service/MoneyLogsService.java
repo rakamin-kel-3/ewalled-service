@@ -6,6 +6,7 @@ import com.example.ewalled.dto.MoneyLogsDto;
 import com.example.ewalled.entity.MoneyLogs;
 import com.example.ewalled.entity.ServiceData;
 import com.example.ewalled.entity.User;
+import com.example.ewalled.exception.BackdateException;
 import com.example.ewalled.exception.DataNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,10 @@ public class MoneyLogsService implements IMoneyLogsService{
 
     @Override
     public ServiceData<MoneyLogsDto.GetListResponse> getList(MoneyLogsDto.Request dto) {
+        if (dto.endDate().isBefore(dto.startDate())) {
+            throw new BackdateException("End date is backdate with Start Date");
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
 
