@@ -35,6 +35,10 @@ public class MoneyLogs {
     @Column(name = "user_id")
     private Integer userId;
 
+    private boolean isTransaction;
+    
+    private Integer transactionId;
+
     @Column(name = "created_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime createdAt;
