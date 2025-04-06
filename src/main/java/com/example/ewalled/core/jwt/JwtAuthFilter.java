@@ -10,11 +10,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -28,6 +30,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver resolver;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response,
@@ -39,7 +45,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7).trim();
 
-            // If token is empty, skip processing
             if (!token.isEmpty()) {
                 try {
                     Claims claims = jwtUtil.getTokenData(token);
@@ -58,7 +63,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 } catch (Exception e) {
                     SecurityContextHolder.clearContext();
                     // throw error when token expired
-                    throw new ForbiddenException(e.getMessage());
+                    resolver.resolveException(request, response, null, new ForbiddenException("Token Expired"));
                 }
             }
         }
