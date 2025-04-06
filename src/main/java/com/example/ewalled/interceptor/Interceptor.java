@@ -20,7 +20,7 @@ public class Interceptor {
             RuntimeException.class,
     })
     public ResponseEntity<HttpResponse> handleException(RuntimeException ex){
-        log.error("Handle Exception error : {} | {}", ex.getMessage(), ex.getStackTrace()[0]);
+        log.error("Handle Exception error : {} | {} | ", ex.getMessage(), ex.getStackTrace()[0], ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(
