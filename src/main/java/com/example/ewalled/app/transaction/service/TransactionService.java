@@ -4,6 +4,7 @@ import com.example.ewalled.app.account.repository.AccountRepository;
 import com.example.ewalled.app.money_logs.repository.MoneyLogsRepository;
 import com.example.ewalled.app.transaction.repository.TransactionRepository;
 import com.example.ewalled.core.redis.CacheKeyBuilder;
+import com.example.ewalled.core.redis.PagingKey;
 import com.example.ewalled.core.redis.RedisCacheService;
 import com.example.ewalled.core.redis.RedisKeys;
 import com.example.ewalled.dto.TransactionDto;
@@ -46,7 +47,7 @@ public class TransactionService implements ITransactionService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
 
-        String key = String.format(RedisKeys.TRANSACTION_GETLIST_KEY, user.getId(),CacheKeyBuilder.buildFrom(pageable));
+        String key = String.format(RedisKeys.TRANSACTION_GETLIST_KEY, user.getId(),CacheKeyBuilder.buildFrom(PagingKey.from(pageable)));
         ServiceData<List<TransactionDto.Response>> cached = this.redisCacheService.get(key, new TypeReference<>() {
         });
         if (cached != null) {
