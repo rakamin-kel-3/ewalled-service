@@ -20,10 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -104,7 +101,7 @@ public class MoneyLogsService implements IMoneyLogsService{
             return cached;
         }
 
-        var moneyLogs = this.moneyLogsRepository.findByUserIdAndTypeAndDateBetweenOrderByDateDesc(user.getId(), dto.type(), dto.startDate(), dto.endDate());
+        var moneyLogs = this.moneyLogsRepository.findByUserIdAndTypeAndDateBetween(user.getId(), dto.type(), dto.startDate(), dto.endDate());
 
         if (moneyLogs.isEmpty()) {
             throw new DataNotFoundException("Data tidak ditemukan");
@@ -143,9 +140,11 @@ public class MoneyLogsService implements IMoneyLogsService{
                     .builder()
                     .category(v.category())
                     .amount(v.amount())
-                    .percentage(Math.round(percentage))
+                    .percentage(percentage)
                     .build());
         });
+
+        graphList.sort(Comparator.comparing(MoneyLogsDto.GraphItem::amount).reversed());
 
         var res = ServiceData
                 .<MoneyLogsDto.GetGraphResponse>builder()
