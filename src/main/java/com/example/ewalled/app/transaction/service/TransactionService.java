@@ -1,11 +1,18 @@
 package com.example.ewalled.app.transaction.service;
 
 import com.example.ewalled.app.account.repository.AccountRepository;
+import com.example.ewalled.app.money_logs.repository.MoneyLogsRepository;
 import com.example.ewalled.app.transaction.repository.TransactionRepository;
+import com.example.ewalled.core.redis.CacheKeyBuilder;
+import com.example.ewalled.core.redis.PagingKey;
+import com.example.ewalled.core.redis.RedisCacheService;
+import com.example.ewalled.core.redis.RedisKeys;
 import com.example.ewalled.dto.TransactionDto;
 import com.example.ewalled.entity.*;
 import com.example.ewalled.exception.DataNotFoundException;
 import com.example.ewalled.exception.InsufficientBalanceException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -15,6 +22,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -27,10 +36,24 @@ public class TransactionService implements ITransactionService {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private MoneyLogsRepository moneyLogsRepository;
+
+    @Autowired
+    private RedisCacheService redisCacheService;
+
     @Override
     public ServiceData<List<TransactionDto.Response>> getList(Pageable pageable) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
+
+        String key = String.format(RedisKeys.TRANSACTION_GETLIST_KEY, user.getId(),CacheKeyBuilder.buildFrom(PagingKey.from(pageable)));
+        ServiceData<List<TransactionDto.Response>> cached = this.redisCacheService.get(key, new TypeReference<>() {
+        });
+        if (cached != null) {
+            log.info("Get from redis key : {}", key);
+            return cached;
+        }
 
         var account = this.accountRepository.findOne(Example.of(
                 Account
@@ -84,11 +107,12 @@ public class TransactionService implements ITransactionService {
                     t.getAmount(),
                     inout,
                     "",
-                    ""
+                    "",
+                    t.getCategory()
             ));
         }
 
-        return ServiceData
+        var res = ServiceData
                 .<List<TransactionDto.Response>>builder()
                 .data(response)
                 .pagination(HttpResponse.Pagination.builder()
@@ -100,9 +124,15 @@ public class TransactionService implements ITransactionService {
                         .hasPrevious(transactions.hasPrevious())
                         .build())
                 .build();
+
+        this.redisCacheService.setEX(key, res, Duration.ofMinutes(5));
+        log.info("Set new redis key : {}", key);
+
+        return res;
     }
 
     @Override
+    @Transactional
     public ServiceData<TransactionDto.Response> transfer(TransactionDto.Transfer dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
@@ -140,14 +170,58 @@ public class TransactionService implements ITransactionService {
                         .status("settled")
                         .typeTrx("transfer")
                         .description(dto.notes())
+                        .category(dto.category())
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build());
 
+        this.moneyLogsRepository.save(MoneyLogs
+                .builder()
+                .date(LocalDate.now())
+                .isTransaction(true)
+                .transactionId(trx.getId())
+                .amount(dto.amount())
+                .category(dto.category())
+                .notes(dto.notes())
+                .userId(user.getId())
+                .type("expense")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()
+        );
+
+        this.moneyLogsRepository.save(MoneyLogs
+                .builder()
+                .date(LocalDate.now())
+                .isTransaction(true)
+                .transactionId(trx.getId())
+                .amount(dto.amount())
+                .category("transfer")
+                .notes(dto.notes())
+                .userId(receipentAccount.getUserId())
+                .type("income")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()
+        );
+
+        String key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, myAccount.getUserId());
+        this.redisCacheService.delete(key);
+
+        key = String.format(RedisKeys.MONEYLOGS_GETLIST_PATTERN, myAccount.getUserId());
+        this.redisCacheService.delete(key);
+
+
+        key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, receipentAccount.getUserId());
+        this.redisCacheService.delete(key);
+
+        key = String.format(RedisKeys.MONEYLOGS_GETLIST_PATTERN, receipentAccount.getUserId());
+        this.redisCacheService.delete(key);
+
         return ServiceData
                 .<TransactionDto.Response>builder()
                 .data(
-                        new TransactionDto.Response(trx.getTransactionId(), trx.getCreatedAt(), trx.getTypeTrx(), "", trx.getDescription(), trx.getAmount(), "out", receipentAccount.getAccountNo(), myAccount.getAccountNo())
+                        new TransactionDto.Response(trx.getTransactionId(), trx.getCreatedAt(), trx.getTypeTrx(), "", trx.getDescription(), trx.getAmount(), "out", receipentAccount.getAccountNo(), myAccount.getAccountNo(), trx.getCategory())
                 ).build();
     }
 
@@ -157,6 +231,7 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional
     public ServiceData<TransactionDto.Response> topup(TransactionDto.Topup dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
@@ -177,16 +252,38 @@ public class TransactionService implements ITransactionService {
                 .amount(dto.amount())
                 .status("settled")
                 .typeTrx("topup")
+                .category(dto.paymentMethod())
                 .receipentAccountId(myAccount.getId())
-                .description((dto.notes() == null ? "Top Up from " + dto.paymentMethod() : dto.notes()))
+                .description(dto.notes())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build());
 
+        this.moneyLogsRepository.save(MoneyLogs
+                .builder()
+                .date(LocalDate.now())
+                .isTransaction(true)
+                .transactionId(trx.getId())
+                .amount(dto.amount())
+                .category(dto.paymentMethod())
+                .notes(dto.notes())
+                .userId(user.getId())
+                .type("income")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build()
+        );
+
+        String key = String.format(RedisKeys.TRANSACTION_GETLIST_PATTERN, myAccount.getUserId());
+        this.redisCacheService.delete(key);
+
+        key = String.format(RedisKeys.MONEYLOGS_GETLIST_PATTERN, myAccount.getUserId());
+        this.redisCacheService.delete(key);
+
         return ServiceData
                 .<TransactionDto.Response>builder()
                 .data(
-                        new TransactionDto.Response(trx.getTransactionId(), trx.getCreatedAt(), trx.getTypeTrx(), "", trx.getDescription(), trx.getAmount(), "out", "", "")
+                        new TransactionDto.Response(trx.getTransactionId(), trx.getCreatedAt(), trx.getTypeTrx(), "", trx.getDescription(), trx.getAmount(), "out", "", "", trx.getCategory())
                 ).build();
     }
 }

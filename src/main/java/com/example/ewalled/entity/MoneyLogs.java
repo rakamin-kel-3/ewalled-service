@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -13,31 +14,30 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @ToString
-@Table(name = "transactions")
-public class Transaction {
+@Table(name = "money_logs")
+public class MoneyLogs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private int amount;
-
-    @Column(name = "transaction_id")
-    private String transactionId;
-
-    private String status;
-
-    private String description;
-
-    @Column(name = "type_trx")
-    private String typeTrx;
+    private String type;
 
     private String category;
 
-    @Column(name = "sender_account_id")
-    private Integer senderAccountId;
+    private String notes;
 
-    @Column(name = "receipent_account_id")
-    private Integer receipentAccountId;
+    private Integer amount;
+
+    @Column(name = "date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    private LocalDate date;
+
+    @Column(name = "user_id")
+    private Integer userId;
+
+    private boolean isTransaction;
+    
+    private Integer transactionId;
 
     @Column(name = "created_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
