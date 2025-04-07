@@ -39,7 +39,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("https://fulusku.netlify.app/", "http://localhost:19006", "exp://192.168.x.x:19000"));
+        config.setAllowedOriginPatterns(List.of("https://fulusku.netlify.app/", "http://localhost:19006", "exp://192.168.x.x:19000", "http://localhost:5173/"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
