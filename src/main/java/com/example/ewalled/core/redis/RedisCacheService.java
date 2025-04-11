@@ -30,22 +30,35 @@ public class RedisCacheService {
     }
 
     public <T> void setEX(String key, T value, Duration ttl) {
-        redisTemplate.opsForValue().set(key, value, ttl);
+        try {
+            redisTemplate.opsForValue().set(key, value, ttl);
+        } catch (Exception e) {
+            log.error("[REDIS] Error set key {} : {} | {}", key, e.getMessage(), e.getCause().toString());
+        }
     }
 
     public <T> T get(String key, TypeReference<T> typeRef) {
-        Object value = redisTemplate.opsForValue().get(key);
-        return objectMapper.convertValue(value, typeRef);
+        try {
+            Object value = redisTemplate.opsForValue().get(key);
+            return objectMapper.convertValue(value, typeRef);
+        } catch (Exception e) {
+            log.error("[REDIS] Error get key {} : {} | {}", key, e.getMessage(), e.getCause().toString());
+        }
+        return null;
     }
 
     public void delete(String pattern) {
-        ScanOptions options = ScanOptions.scanOptions().match(pattern).build();
-        try (Cursor<String> cursor = redisTemplate.scan(options)) {
-            while (cursor.hasNext()) {
-                var key = cursor.next();
-                redisTemplate.delete(key);
-                log.info("REDIS: invalidate key : {}", key);
+        try {
+            ScanOptions options = ScanOptions.scanOptions().match(pattern).build();
+            try (Cursor<String> cursor = redisTemplate.scan(options)) {
+                while (cursor.hasNext()) {
+                    var key = cursor.next();
+                    redisTemplate.delete(key);
+                    log.info("REDIS: invalidate key : {}", key);
+                }
             }
+        } catch (Exception e) {
+            log.error("[REDIS] Error delete key {} : {} | {}", pattern, e.getMessage(), e.getCause().toString());
         }
     }
 }
