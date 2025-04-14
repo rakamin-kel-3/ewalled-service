@@ -21,7 +21,7 @@ public class TransactionDto {
         }
 
         public record Topup(
-                        @NotNull(message = "Amount tidak boleh kosong") int amount,
+                        @NotNull(message = "Amount tidak boleh kosong") @Positive(message = "Amount harus lebih dari 0") int amount,
 
                         @NotNull(message = "Payment Method tidak boleh kosong") @NotBlank(message = "Payment Method tidak boleh kosong") String paymentMethod,
 
